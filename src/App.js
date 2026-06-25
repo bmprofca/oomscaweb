@@ -1,24 +1,55 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ToastProvider } from "./contexts/ToastContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { AuthProvider } from "./contexts/AuthContext";
+
+import MainLayout from "./components/layout/MainLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Login from "./pages/Login";
+import NotFound from "./pages/NotFound";
+import ServerUnreachable from "./pages/ServerUnreachable";
+import Dashboard from "./pages/Dashboard";
+import Services from "./pages/Services";
+import Task from "./pages/Task";
+import Profile from "./pages/Profile";
+import Firms from "./pages/Firms";
+import Documents from "./pages/Documents";
+import Ledger from "./pages/Ledger";
+import Support from "./pages/Support";
+import Notification from "./pages/Notification";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <ToastProvider>
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/server-error" element={<ServerUnreachable />} />
+
+              <Route element={<ProtectedRoute />}>
+                <Route element={<MainLayout />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/services" element={<Services />} />
+                  <Route path="/tasks" element={<Task />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/firms" element={<Firms />} />
+                  <Route path="/documents" element={<Documents />} />
+                  <Route path="/ledger" element={<Ledger />} />
+                  <Route path="/support" element={<Support />} />
+                  <Route path="/notification" element={<Notification />} />
+                </Route>
+              </Route>
+
+              <Route path="/404" element={<NotFound />} />
+              <Route path="*" element={<Navigate to="/404" replace />} />
+            </Routes>
+          </ToastProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

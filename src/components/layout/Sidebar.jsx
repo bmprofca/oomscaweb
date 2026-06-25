@@ -1,0 +1,247 @@
+import React, { useState, useEffect } from 'react';
+import {
+  House,
+  ConciergeBell,
+  LifeBuoy,
+  ClipboardList,
+  FileBox,
+  BrickWall,
+  Receipt,
+  Bell,
+} from 'lucide-react';
+import { useLocation, Link } from 'react-router-dom';
+
+const Sidebar = ({ isMobile, sidebarOpen, toggleSidebar, onHover, isExpanded }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  const userType = 'ca';
+
+  const allMenuItems = [
+    {
+      icon: House,
+      label: 'Dashboard',
+      path: '/dashboard',
+    },
+    {
+      icon: ConciergeBell,
+      label: 'Services',
+      path: '/services',
+      roles: ['ca'],
+    },
+    {
+      icon: ClipboardList,
+      label: 'Tasks',
+      path: '/tasks',
+      roles: ['ca'],
+    },
+    {
+      icon: BrickWall,
+      label: 'Firms',
+      path: '/firms',
+      roles: ['ca'],
+    },
+    {
+      icon: FileBox,
+      label: 'Documents',
+      path: '/documents',
+      roles: ['ca'],
+    },
+    {
+      icon: Receipt,
+      label: 'Ledger',
+      path: '/ledger',
+      roles: ['ca'],
+    },
+    {
+      icon: Bell,
+      label: 'Notification',
+      path: '/notification',
+      roles: ['ca'],
+    }
+  ];
+
+  const menuItems = allMenuItems.filter(item => !item.roles || item.roles.includes(userType));
+
+  const isActiveRoute = (itemPath) => {
+    return currentPath === itemPath || currentPath.startsWith(itemPath + '/');
+  };
+
+  useEffect(() => {
+    if (onHover && !isMobile) {
+      onHover(isHovered);
+    }
+  }, [isHovered, onHover, isMobile]);
+
+  // ================= MOBILE SIDEBAR =================
+  if (isMobile) {
+    return (
+      <>
+        <div className={`
+          fixed left-0 top-12 sm:top-16 z-30 w-60 sm:w-64 h-[calc(100vh-3rem)] sm:h-[calc(100vh-4rem)]
+          bg-white dark:bg-gray-900 transform transition-transform duration-300 ease-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          overflow-y-auto overflow-x-hidden shadow-2xl dark:shadow-gray-950/50
+        `}>
+          <div className="p-3 pb-24">
+            <nav className="space-y-1">
+              {menuItems.map((item) => {
+                const isActive = isActiveRoute(item.path);
+                const Icon = item.icon;
+
+                return (
+                  <Link
+                    key={item.label}
+                    to={item.path}
+                    onClick={() => toggleSidebar()}
+                    className={`
+                      flex items-center px-2.5 py-2.5 rounded-md transition-all duration-200 mb-1
+                      ${isActive
+                        ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400'
+                      }
+                    `}
+                  >
+                    <div className={`
+                      p-1.5 rounded-md mr-2.5
+                      ${isActive
+                        ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                      }
+                    `}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Help Section (Mobile) */}
+            <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+              <Link
+                to="/support"
+                onClick={() => toggleSidebar()}
+                className="block bg-gradient-to-r mt-3 from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-md p-3 hover:shadow-md transition-shadow duration-200 group"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <LifeBuoy className="text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-200" size={20} />
+                  <p className="text-xs font-semibold text-gray-700 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    Need Help?
+                  </p>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Contact our support team
+                </p>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // ================= DESKTOP SIDEBAR =================
+  const isSidebarExpanded = isExpanded;
+
+  const renderMenuItem = (item, isExpandedState) => {
+    const isActive = isActiveRoute(item.path);
+    const Icon = item.icon;
+
+    return (
+      <Link
+        key={item.label}
+        to={item.path}
+        className={`
+          flex items-center rounded-md transition-all duration-200 group
+          ${isExpandedState ? 'px-3 py-2.5 gap-3' : 'px-0 py-2.5 justify-center'}
+          ${isActive
+            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400'
+          }
+        `}
+        title={!isExpandedState ? item.label : ''}
+      >
+        <div className={`
+          p-2 rounded-md transition-all duration-200
+          ${isExpandedState ? '' : 'mx-auto'}
+          ${isActive
+            ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'
+            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/30 group-hover:text-blue-600 dark:group-hover:text-blue-400'
+          }
+        `}>
+          <Icon className="w-4 h-4" />
+        </div>
+        {isExpandedState && (
+          <>
+            <span className={`flex-1 text-sm font-medium ${isActive ? 'font-semibold' : ''}`}>
+              {item.label}
+            </span>
+            {isActive && (
+              <span className="w-1.5 h-6 bg-blue-600 rounded-full"></span>
+            )}
+          </>
+        )}
+        {!isExpandedState && isActive && (
+          <span className="absolute left-0 w-1 h-8 bg-blue-600 rounded-r-full"></span>
+        )}
+      </Link>
+    );
+  };
+
+  const handleMouseEnter = () => {
+    if (!isSidebarExpanded) {
+      setIsHovered(true);
+      if (onHover) onHover(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    if (onHover) onHover(false);
+  };
+
+  return (
+    <div
+      className={`
+        fixed left-0 top-16 z-20 bg-white dark:bg-gray-900
+        transition-all duration-300 ease-out
+        ${isSidebarExpanded ? 'w-64' : 'w-16'}
+        h-[calc(100vh-4rem)]
+        shadow-lg dark:shadow-gray-950/50 border-r border-gray-200 dark:border-gray-700
+        overflow-y-auto overflow-x-hidden
+      `}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div className="flex flex-col h-full">
+        <nav className="flex-1 py-6 px-2">
+          {menuItems.map((item) => renderMenuItem(item, isSidebarExpanded))}
+        </nav>
+
+        {/* Footer Section (Desktop) - only when expanded */}
+        {isSidebarExpanded && (
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+            <Link
+              to="/support"
+              className="block bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md p-3 hover:shadow-sm transition-all duration-200 group"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <LifeBuoy className="text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-200" size={16} />
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  Need Help?
+                </p>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Contact our support team
+              </p>
+            </Link>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Sidebar;
