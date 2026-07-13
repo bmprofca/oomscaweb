@@ -1,6 +1,7 @@
 import toast from 'react-hot-toast';
 
-const API_BASE = "https://api.ooms.in/client";
+// BASE_API_URL — set via REACT_APP_BASE_API_URL in .env.development / .env.production
+const API_BASE = (process.env.REACT_APP_BASE_API_URL || 'http://localhost:8877/ca').replace(/\/$/, '');
 
 /**
  * Unified API calling utility
