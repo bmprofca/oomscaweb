@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   House,
-  ConciergeBell,
-  LifeBuoy,
   ClipboardList,
   FileBox,
   BrickWall,
   Receipt,
-  Bell,
+  ShieldCheck,
 } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
 
@@ -25,15 +23,15 @@ const Sidebar = ({ isMobile, sidebarOpen, toggleSidebar, onHover, isExpanded }) 
       path: '/dashboard',
     },
     {
-      icon: ConciergeBell,
-      label: 'Services',
-      path: '/services',
-      roles: ['ca'],
-    },
-    {
       icon: ClipboardList,
       label: 'Tasks',
       path: '/tasks',
+      roles: ['ca'],
+    },
+    {
+      icon: ShieldCheck,
+      label: 'Sent Approvals',
+      path: '/sent-approvals',
       roles: ['ca'],
     },
     {
@@ -54,17 +52,14 @@ const Sidebar = ({ isMobile, sidebarOpen, toggleSidebar, onHover, isExpanded }) 
       path: '/ledger',
       roles: ['ca'],
     },
-    {
-      icon: Bell,
-      label: 'Notification',
-      path: '/notification',
-      roles: ['ca'],
-    }
   ];
 
   const menuItems = allMenuItems.filter(item => !item.roles || item.roles.includes(userType));
 
   const isActiveRoute = (itemPath) => {
+    if (itemPath === '/tasks') {
+      return currentPath === '/tasks' || /^\/tasks\/[^/]+/.test(currentPath);
+    }
     return currentPath === itemPath || currentPath.startsWith(itemPath + '/');
   };
 
@@ -84,7 +79,7 @@ const Sidebar = ({ isMobile, sidebarOpen, toggleSidebar, onHover, isExpanded }) 
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           overflow-y-auto overflow-x-hidden shadow-2xl dark:shadow-gray-950/50
         `}>
-          <div className="p-3 pb-24">
+          <div className="p-3 pb-6">
             <nav className="space-y-1">
               {menuItems.map((item) => {
                 const isActive = isActiveRoute(item.path);
@@ -117,25 +112,6 @@ const Sidebar = ({ isMobile, sidebarOpen, toggleSidebar, onHover, isExpanded }) 
                 );
               })}
             </nav>
-
-            {/* Help Section (Mobile) */}
-            <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-              <Link
-                to="/support"
-                onClick={() => toggleSidebar()}
-                className="block bg-gradient-to-r mt-3 from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-md p-3 hover:shadow-md transition-shadow duration-200 group"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <LifeBuoy className="text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-200" size={20} />
-                  <p className="text-xs font-semibold text-gray-700 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    Need Help?
-                  </p>
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Contact our support team
-                </p>
-              </Link>
-            </div>
           </div>
         </div>
       </>
@@ -219,26 +195,6 @@ const Sidebar = ({ isMobile, sidebarOpen, toggleSidebar, onHover, isExpanded }) 
         <nav className="flex-1 py-6 px-2">
           {menuItems.map((item) => renderMenuItem(item, isSidebarExpanded))}
         </nav>
-
-        {/* Footer Section (Desktop) - only when expanded */}
-        {isSidebarExpanded && (
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-            <Link
-              to="/support"
-              className="block bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md p-3 hover:shadow-sm transition-all duration-200 group"
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <LifeBuoy className="text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-200" size={16} />
-                <p className="text-xs font-semibold text-gray-700 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                  Need Help?
-                </p>
-              </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Contact our support team
-              </p>
-            </Link>
-          </div>
-        )}
       </div>
     </div>
   );

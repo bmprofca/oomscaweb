@@ -3,8 +3,10 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import ProfileSelectionModal from '../ProfileSelectionModal';
+import { useAuth } from '../../contexts/AuthContext';
 
 const MainLayout = ({ children }) => {
+  const { userData, openProfileModal, isProfileModalOpen } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarHovered, setSidebarHovered] = useState(false);
@@ -34,6 +36,14 @@ const MainLayout = ({ children }) => {
     document.documentElement.style.setProperty('--sidebar-offset', sidebarOffset);
     window.dispatchEvent(new Event('sidebar-offset-change'));
   }, [isMobile, desktopSidebarCollapsed]);
+
+  // If session has a token but no selected branch/username, force branch selection
+  useEffect(() => {
+    const needsBranch = userData?.token && (!userData?.username || !userData?.branch?.branch_id);
+    if (needsBranch && !isProfileModalOpen) {
+      openProfileModal();
+    }
+  }, [userData?.token, userData?.username, userData?.branch?.branch_id, isProfileModalOpen, openProfileModal]);
 
   const toggleSidebar = () => {
     if (isMobile) {
@@ -109,7 +119,7 @@ const MainLayout = ({ children }) => {
             {children || <Outlet />}
           </div>
         </main>
-      </div> 
+      </div>
       <ProfileSelectionModal />
     </div>
   );

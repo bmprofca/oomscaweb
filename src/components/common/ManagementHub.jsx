@@ -6,17 +6,6 @@ function joinClasses(...classes) {
   return classes.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
 }
 
-const accentStyles = {
-  slate: 'from-slate-600 to-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700',
-  blue: 'from-blue-600 to-indigo-600 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
-  green: 'from-green-600 to-emerald-600 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800',
-  emerald: 'from-emerald-600 to-teal-600 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
-  indigo: 'from-indigo-600 to-violet-600 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
-  violet: 'from-violet-600 to-fuchsia-600 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800',
-  amber: 'from-amber-600 to-orange-600 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
-  rose: 'from-rose-600 to-red-600 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800',
-};
-
 const activeButtonStyles = {
   slate: 'bg-gradient-to-r from-slate-700 to-slate-900 dark:from-slate-600 dark:to-slate-800 text-white shadow-md',
   blue: 'bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 text-white shadow-md shadow-blue-300 dark:shadow-blue-900/50',
@@ -46,8 +35,6 @@ export default function ManagementHub({
   contentClassName = '',
   widthClassName = 'max-w-[1600px]',
 }) {
-  const accentClass = accentStyles[accent] || accentStyles.slate;
-
   return (
     <div className={joinClasses('min-h-screen', className)}>
       <div className={joinClasses('mx-auto', widthClassName)}>

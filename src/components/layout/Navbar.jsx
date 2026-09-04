@@ -8,9 +8,7 @@ import {
   LogOut,
   Sun,
   Moon,
-  Bell,
   Users,
-  LifeBuoy
 } from 'lucide-react';
 
 import { useTheme } from '../../contexts/ThemeContext';
@@ -28,7 +26,8 @@ const Navbar = ({
   const { userData, logout, openProfileModal } = useAuth();
 
   const handleLogout = async () => {
-    logout();
+    setOpenDropdown(false);
+    await logout();
   };
 
   const isSidebarOpen = isMobile ? sidebarOpen : isDesktopSidebarExpanded;
@@ -68,31 +67,17 @@ const Navbar = ({
 
             {/* Right section */}
             <div className="flex items-center space-x-1 sm:space-x-2">
-              {/* Notification Button */}
-              <button
-                onClick={() => navigate('/notification')}
-                className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-md transition-all duration-300 focus:outline-none
-                  bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700
-                  border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500
-                  hover:shadow-md active:scale-95"
-                aria-label="View notifications"
-                title="Notifications"
-              >
-                <Bell className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-slate-600 dark:text-slate-200 transition-colors duration-200" />
-                <span className="sr-only">Notifications</span>
-              </button>
-
-              {/* Desktop Switch Profile Button */}
+              {/* Desktop Switch Branch Button */}
               <button
                 onClick={openProfileModal}
                 className="hidden md:flex items-center gap-2 px-3 h-10 rounded-md transition-all duration-300 group focus:outline-none
                   bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-800/40
                   text-indigo-600 dark:text-indigo-400 font-medium text-sm
                   border border-indigo-100 dark:border-indigo-800/50"
-                aria-label="Switch Profile"
+                aria-label="Switch Branch"
               >
                 <Users className="w-4 h-4" />
-                Switch Profile
+                Switch Branch
               </button>
 
               {/* Theme Toggle Button */}
@@ -165,7 +150,7 @@ const Navbar = ({
                         className="md:hidden w-full text-left px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors flex items-center gap-2 sm:gap-3"
                       >
                         <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        Switch Profile
+                        Switch Branch
                       </button>
 
                       <button
@@ -174,14 +159,6 @@ const Navbar = ({
                       >
                         <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 dark:text-gray-400" />
                         My Profile
-                      </button>
-
-                      <button
-                        onClick={() => { setOpenDropdown(false); navigate('/support'); }}
-                        className="w-full text-left px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2 sm:gap-3"
-                      >
-                        <LifeBuoy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 dark:text-gray-400" />
-                        Help & Support
                       </button>
 
                       <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>

@@ -2,13 +2,19 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
 const ProtectedRoute = ({ children }) => {
-  const userData = localStorage.getItem('ooms_user_data');
-  
-  if (!userData) {
-    // Redirect to login if there's no user data
+  let parsed = null;
+  try {
+    const raw = localStorage.getItem('ooms_user_data');
+    parsed = raw ? JSON.parse(raw) : null;
+  } catch {
+    parsed = null;
+  }
+
+  if (!parsed?.token) {
     return <Navigate to="/login" replace />;
   }
 
+  // Token without username/branch is allowed so MainLayout can force branch selection
   return children ? children : <Outlet />;
 };
 

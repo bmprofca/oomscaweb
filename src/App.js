@@ -9,14 +9,13 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import ServerUnreachable from "./pages/ServerUnreachable";
 import Dashboard from "./pages/Dashboard";
-import Services from "./pages/Services";
 import Task from "./pages/Task";
+import TaskProfile from "./pages/TaskProfile";
+import SentApprovals from "./pages/SentApprovals";
 import Profile from "./pages/Profile";
 import Firms from "./pages/Firms";
 import Documents from "./pages/Documents";
 import Ledger from "./pages/Ledger";
-import Support from "./pages/Support";
-import Notification from "./pages/Notification";
 
 function App() {
   return (
@@ -32,14 +31,14 @@ function App() {
               <Route element={<ProtectedRoute />}>
                 <Route element={<MainLayout />}>
                   <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/services" element={<Services />} />
                   <Route path="/tasks" element={<Task />} />
+                  <Route path="/sent-approvals" element={<SentApprovals />} />
+                  <Route path="/tasks/:taskId" element={<TaskProfile />} />
+                  <Route path="/tasks/:taskId/:tab" element={<TaskProfile />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/firms" element={<Firms />} />
                   <Route path="/documents" element={<Documents />} />
                   <Route path="/ledger" element={<Ledger />} />
-                  <Route path="/support" element={<Support />} />
-                  <Route path="/notification" element={<Notification />} />
                 </Route>
               </Route>
 
