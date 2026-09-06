@@ -1,16 +1,21 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  CheckSquare, Clock, Eye, Activity, User, Building2, Shield,
+  CheckSquare, Clock, Eye, User, Building2, Shield,
 } from 'lucide-react';
 import { apiCall } from '../utils/apiCall';
 import toast from 'react-hot-toast';
 import ManagementHub from '../components/common/ManagementHub';
 import ManagementFilters from '../components/common/ManagementFilters';
-import ManagementCard from '../components/common/ManagementCard';
 import ManagementTable from '../components/common/ManagementTable';
 import TablePagination from '../components/TablePagination';
 import { formatDate } from '../utils/helpers';
+import {
+  FREQUENCY_OPTIONS,
+  getComplianceYearOptions,
+  getPeriodOptions,
+  normalizeFrequency,
+} from '../utils/compliancePeriod';
 
 const STATUS_MAP = {
   'in process': { label: 'In Process', badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800' },
@@ -36,8 +41,14 @@ const getCaApproval = (s) => {
   return CA_APPROVAL_MAP[key] || { label: s || 'Pending', badge: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700' };
 };
 
+/** Default: in-process only (exclude complete + cancel), matching CLIENT task list. */
+const DEFAULT_SELECTED_STATUSES = [
+  'in process',
+  'pending from client',
+  'pending from department',
+];
+
 const STATUS_OPTIONS = [
-  { value: 'all', label: 'All Status' },
   { value: 'in process', label: 'In Process' },
   { value: 'pending from department', label: 'Dept. Pending' },
   { value: 'pending from client', label: 'Client Pending' },
@@ -50,6 +61,11 @@ const CA_APPROVAL_OPTIONS = [
   { value: 'pending', label: 'Pending' },
   { value: 'sent', label: 'Sent' },
   { value: 'complete', label: 'Complete' },
+];
+
+const FREQUENCY_SELECT_OPTIONS = [
+  { value: '', label: 'All frequencies' },
+  ...FREQUENCY_OPTIONS,
 ];
 
 function Pulse({ h = 'h-4', w = 'w-full', rounded = 'rounded' }) {
@@ -85,84 +101,44 @@ function TableSkeleton() {
   );
 }
 
-function CardSkeleton() {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {[...Array(6)].map((_, i) => (
-        <div key={i} className="rounded-sm border border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl p-5 flex flex-col gap-4 shadow-sm">
-          <Pulse h="h-5" w="w-3/4" rounded="rounded-full" />
-          <Pulse h="h-4" w="w-1/2" rounded="rounded-full" />
-        </div>
-      ))}
-    </div>
-  );
-}
+async function fetchAddedServices() {
+  const collected = [];
+  let page = 1;
+  let hasMore = true;
 
-function TaskCard({ task, onClick }) {
-  const { label, badge } = getStatus(task.status);
-  const ca = getCaApproval(task.ca_approval);
-  return (
-    <ManagementCard
-      title={task.service?.name || '—'}
-      subtitle={
-        <span className="flex items-center gap-1.5 mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-          <User size={10} className="shrink-0" />
-          <span className="truncate">{task.client?.name || '—'}</span>
-        </span>
-      }
-      icon={<Activity size={14} />}
-      badge={
-        <div className="flex flex-col items-end gap-1">
-          <div className="flex flex-wrap items-center justify-end gap-1">
-            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest shrink-0 shadow-sm ${badge}`}>
-              {label}
-            </span>
-            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest shrink-0 shadow-sm ${ca.badge}`}>
-              CA: {ca.label}
-            </span>
-          </div>
-          {String(task.ca_approval || '').toLowerCase() === 'complete' && task.udin ? (
-            <p className="max-w-[160px] truncate text-[10px] font-semibold text-emerald-700 dark:text-emerald-400" title={task.udin}>
-              UDIN: {task.udin}
-            </p>
-          ) : null}
-        </div>
-      }
-      onClick={onClick}
-      accent="blue"
-      menuId={`task-${task.task_id}`}
-      actions={[{ id: 'view', label: 'Open Profile', icon: <Eye size={14} />, onClick }]}
-      footer={
-        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100/50 dark:bg-slate-800 px-2 py-1 rounded-lg">
-          <Clock size={12} className={task.dates?.due_date ? 'text-amber-500' : ''} />
-          {formatDate(task.dates?.due_date)}
-        </div>
-      }
-    >
-      <div className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-400 mb-2 mt-2 bg-slate-50 dark:bg-slate-800/80 p-2 rounded-lg border border-slate-100 dark:border-slate-700/50">
-        <Building2 size={12} className="shrink-0 text-slate-400" />
-        <span className="truncate font-semibold">{task.firm?.firm_name || '—'}</span>
-      </div>
-    </ManagementCard>
-  );
+  while (hasMore) {
+    const res = await apiCall(
+      `/service/list?page_no=${page}&limit=100&added_only=true&search=`,
+      'GET'
+    );
+    const data = await res.json();
+    if (!res.ok || data.success === false) break;
+    collected.push(...(data.data || []));
+    hasMore = data.pagination?.is_last_page === false;
+    page += 1;
+  }
+
+  return collected
+    .filter((service) => service.is_added !== false)
+    .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
 }
 
 export default function Task({ fixedCaApproval = null } = {}) {
   const navigate = useNavigate();
   const isSentApprovalsPage = fixedCaApproval === 'sent';
-  const [viewMode, setViewMode] = useState(() => window.innerWidth < 768 ? 'card' : 'table');
-  useEffect(() => {
-    const h = () => setViewMode(window.innerWidth < 768 ? 'card' : 'table');
-    window.addEventListener('resize', h);
-    return () => window.removeEventListener('resize', h);
-  }, []);
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('all');
+  const [selectedStatuses, setSelectedStatuses] = useState(DEFAULT_SELECTED_STATUSES);
+  const [selectedServiceIds, setSelectedServiceIds] = useState([]);
+  const [frequency, setFrequency] = useState('');
+  const [complianceYear, setComplianceYear] = useState('');
+  const [compliancePeriod, setCompliancePeriod] = useState('');
   const [caApproval, setCaApproval] = useState(fixedCaApproval || 'all');
+  const [services, setServices] = useState([]);
+  const [servicesLoading, setServicesLoading] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -173,13 +149,68 @@ export default function Task({ fixedCaApproval = null } = {}) {
     }
   }, [fixedCaApproval]);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setServicesLoading(true);
+      try {
+        const list = await fetchAddedServices();
+        if (!cancelled) setServices(list);
+      } catch {
+        if (!cancelled) setServices([]);
+      } finally {
+        if (!cancelled) setServicesLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const selectedServices = useMemo(
+    () => services.filter((s) => selectedServiceIds.includes(String(s.service_id))),
+    [services, selectedServiceIds]
+  );
+
+  const selectedComplianceServices = useMemo(
+    () => selectedServices.filter(
+      (s) => String(s.type || '').toLowerCase() === 'compliance'
+    ),
+    [selectedServices]
+  );
+
+  const periodSourceFrequency = useMemo(() => {
+    if (frequency) return normalizeFrequency(frequency);
+    if (selectedComplianceServices.length === 1) {
+      return normalizeFrequency(selectedComplianceServices[0].frequency);
+    }
+    return '';
+  }, [frequency, selectedComplianceServices]);
+
+  const periodChoices = useMemo(() => {
+    if (!periodSourceFrequency) return [];
+    if (periodSourceFrequency === 'yearly') return [];
+    return getPeriodOptions(periodSourceFrequency);
+  }, [periodSourceFrequency]);
+
+  const periodFilterEnabled = Boolean(
+    complianceYear && periodSourceFrequency && periodSourceFrequency !== 'yearly'
+  );
+
+  useEffect(() => {
+    setCompliancePeriod('');
+  }, [complianceYear, periodSourceFrequency]);
+
   const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
       const qs = new URLSearchParams({ page_no: page, limit, search });
-      if (status && status !== 'all') {
-        qs.append('status', status);
+      selectedStatuses.forEach((status) => qs.append('status', status));
+      selectedServiceIds.forEach((id) => qs.append('service_ids', id));
+      if (frequency) qs.append('frequency', frequency);
+      if (complianceYear) qs.append('compliance_year', complianceYear);
+      if (compliancePeriod && periodFilterEnabled) {
+        qs.append('compliance_period', compliancePeriod);
       }
+
       const approvalFilter = fixedCaApproval || caApproval;
       if (approvalFilter && approvalFilter !== 'all') {
         qs.append('ca_approval', approvalFilter);
@@ -200,7 +231,19 @@ export default function Task({ fixedCaApproval = null } = {}) {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, search, status, caApproval, fixedCaApproval]);
+  }, [
+    page,
+    limit,
+    search,
+    selectedStatuses,
+    selectedServiceIds,
+    frequency,
+    complianceYear,
+    compliancePeriod,
+    periodFilterEnabled,
+    caApproval,
+    fixedCaApproval,
+  ]);
 
   useEffect(() => {
     const t = setTimeout(fetchTasks, 300);
@@ -216,8 +259,26 @@ export default function Task({ fixedCaApproval = null } = {}) {
     );
   };
 
-  const statusOptions = STATUS_OPTIONS.map(o => ({ value: o.value, label: o.label }));
-  const caApprovalOptions = CA_APPROVAL_OPTIONS.map(o => ({ value: o.value, label: o.label }));
+  const statusOptions = STATUS_OPTIONS;
+  const caApprovalOptions = CA_APPROVAL_OPTIONS;
+  const serviceOptions = useMemo(
+    () => services.map((service) => ({
+      value: String(service.service_id),
+      label: service.name || 'Unnamed service',
+    })),
+    [services]
+  );
+  const yearOptions = useMemo(
+    () => [
+      { value: '', label: 'All years' },
+      ...getComplianceYearOptions(5).map((year) => ({ value: year, label: year })),
+    ],
+    []
+  );
+  const periodSelectOptions = useMemo(
+    () => periodChoices.map((period) => ({ value: period, label: period })),
+    [periodChoices]
+  );
 
   const tableColumns = [
     {
@@ -299,17 +360,85 @@ export default function Task({ fixedCaApproval = null } = {}) {
 
   const filterDefs = [
     {
+      key: 'status',
       options: statusOptions,
-      value: statusOptions.find(o => o.value === status) || statusOptions[0],
-      onChange: (selected) => { setStatus(selected ? selected.value : 'all'); setPage(1); },
-      placeholder: 'Filter Status',
+      value: statusOptions.filter((o) => selectedStatuses.includes(o.value)),
+      onChange: (selected) => {
+        const next = Array.isArray(selected)
+          ? selected.map((o) => o.value)
+          : [];
+        setSelectedStatuses(next);
+        setPage(1);
+      },
+      placeholder: 'Status',
+      isMulti: true,
+      compactMulti: true,
+      isClearable: true,
+    },
+    {
+      key: 'service',
+      options: serviceOptions,
+      value: serviceOptions.filter((o) => selectedServiceIds.includes(o.value)),
+      onChange: (selected) => {
+        const next = Array.isArray(selected)
+          ? selected.map((o) => o.value)
+          : [];
+        setSelectedServiceIds(next);
+        setPage(1);
+      },
+      placeholder: servicesLoading ? 'Loading services…' : 'Services (added)',
+      isMulti: true,
+      isClearable: true,
+      isDisabled: servicesLoading,
+    },
+    {
+      key: 'frequency',
+      options: FREQUENCY_SELECT_OPTIONS,
+      value: FREQUENCY_SELECT_OPTIONS.find((o) => o.value === frequency) || FREQUENCY_SELECT_OPTIONS[0],
+      onChange: (selected) => {
+        setFrequency(selected?.value || '');
+        setCompliancePeriod('');
+        setPage(1);
+      },
+      placeholder: 'Frequency',
       isClearable: false,
+    },
+    {
+      key: 'year',
+      options: yearOptions,
+      value: yearOptions.find((o) => o.value === complianceYear) || yearOptions[0],
+      onChange: (selected) => {
+        setComplianceYear(selected?.value || '');
+        setCompliancePeriod('');
+        setPage(1);
+      },
+      placeholder: 'Financial year',
+      isClearable: false,
+    },
+    {
+      key: 'period',
+      options: periodSelectOptions,
+      value: periodSelectOptions.find((o) => o.value === compliancePeriod) || null,
+      onChange: (selected) => {
+        setCompliancePeriod(selected?.value || '');
+        setPage(1);
+      },
+      placeholder: !periodSourceFrequency
+        ? 'Select frequency or 1 service'
+        : !complianceYear
+          ? 'Select year first'
+          : periodSourceFrequency === 'yearly'
+            ? 'Annual (no period)'
+            : 'Period',
+      isClearable: true,
+      isDisabled: !periodFilterEnabled,
     },
   ];
   if (!isSentApprovalsPage) {
     filterDefs.push({
+      key: 'ca_approval',
       options: caApprovalOptions,
-      value: caApprovalOptions.find(o => o.value === caApproval) || caApprovalOptions[0],
+      value: caApprovalOptions.find((o) => o.value === caApproval) || caApprovalOptions[0],
       onChange: (selected) => { setCaApproval(selected ? selected.value : 'all'); setPage(1); },
       placeholder: 'Filter CA Status',
       isClearable: false,
@@ -331,8 +460,6 @@ export default function Task({ fixedCaApproval = null } = {}) {
     >
       <div className="space-y-4">
         <ManagementFilters
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
           searchValue={search}
           onSearchChange={(val) => { setSearch(val); setPage(1); }}
           searchPlaceholder="Search service, client, firm…"
@@ -340,7 +467,7 @@ export default function Task({ fixedCaApproval = null } = {}) {
         />
 
         {loading ? (
-          viewMode === 'table' ? <TableSkeleton /> : <CardSkeleton />
+          <TableSkeleton />
         ) : tasks.length === 0 ? (
           <div className="rounded-sm border border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl p-16 text-center flex flex-col items-center gap-4 shadow-sm">
             <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-full">
@@ -355,7 +482,7 @@ export default function Task({ fixedCaApproval = null } = {}) {
                 : 'Try adjusting your search or filters'}
             </p>
           </div>
-        ) : viewMode === 'table' ? (
+        ) : (
           <ManagementTable
             rows={tasks}
             columns={tableColumns}
@@ -365,12 +492,6 @@ export default function Task({ fixedCaApproval = null } = {}) {
             accent={isSentApprovalsPage ? 'amber' : 'blue'}
             showSerialNo={true}
           />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {tasks.map((task) => (
-              <TaskCard key={task.task_id} task={task} onClick={() => openProfile(task)} />
-            ))}
-          </div>
         )}
 
         <TablePagination

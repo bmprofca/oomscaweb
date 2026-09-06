@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   CheckCircle, Clock, Building2, Briefcase,
-  IndianRupee, Activity, XCircle, AlertCircle, TrendingUp,
-  TrendingDown, Wallet, ArrowRight, Receipt, RefreshCw, FileBox,
+  Activity, XCircle, AlertCircle, TrendingUp,
+  TrendingDown, Wallet, ArrowRight, Receipt, RefreshCw,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { apiCall } from '../utils/apiCall';
@@ -109,8 +109,8 @@ function BalanceRow({ label, amount, icon: Icon, iconClass }) {
         </div>
         {label}
       </span>
-      <span className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-0.5">
-        <IndianRupee size={13} className="text-slate-400 dark:text-slate-500" />{fmt(amount)}
+      <span className="text-sm font-bold text-slate-800 dark:text-slate-100 tabular-nums">
+        ₹{fmt(amount)}
       </span>
     </div>
   );
@@ -281,9 +281,8 @@ export default function Dashboard() {
             >
               <div className="px-4 py-3 border-b border-slate-100 dark:border-gray-700 bg-slate-50/50 dark:bg-gray-900/20">
                 <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Net Balance</p>
-                <p className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-0.5 tracking-tight">
-                  <IndianRupee size={18} className="text-slate-400 dark:text-slate-500 stroke-[2.5]" />
-                  {fmt(balance.balance)}
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums">
+                  ₹{fmt(balance.balance)}
                 </p>
               </div>
               <div>
@@ -329,7 +328,7 @@ export default function Dashboard() {
               { label: 'Tasks', path: '/tasks', icon: Briefcase, iconBg: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400', desc: 'Manage assigned tasks' },
               { label: 'Firms', path: '/firms', icon: Building2, iconBg: 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400', desc: 'Client firm accounts' },
               { label: 'Ledger', path: '/ledger', icon: Receipt, iconBg: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', desc: 'Sales, payments & journals' },
-              { label: 'Documents', path: '/documents', icon: FileBox, iconBg: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400', desc: 'GST, IT & MCA filings' },
+              { label: 'Sent Approvals', path: '/sent-approvals', icon: CheckCircle, iconBg: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400', desc: 'Tasks awaiting UDIN' },
             ].map(({ label, path, icon: Icon, iconBg, desc }) => (
               <button
                 key={label}

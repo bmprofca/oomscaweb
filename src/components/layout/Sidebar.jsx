@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import {
   House,
   ClipboardList,
-  FileBox,
   BrickWall,
   Receipt,
   ShieldCheck,
+  IndianRupee,
 } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
 
@@ -41,13 +41,13 @@ const Sidebar = ({ isMobile, sidebarOpen, toggleSidebar, onHover, isExpanded }) 
       roles: ['ca'],
     },
     {
-      icon: FileBox,
-      label: 'Documents',
-      path: '/documents',
+      icon: Receipt,
+      label: 'Billing',
+      path: '/billing',
       roles: ['ca'],
     },
     {
-      icon: Receipt,
+      icon: IndianRupee,
       label: 'Ledger',
       path: '/ledger',
       roles: ['ca'],

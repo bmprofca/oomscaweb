@@ -98,37 +98,7 @@ export const GlobalSkeleton = () => {
   );
 };
 
-export const PageContentSkeleton = ({ viewMode = "table", rows = 6, columns = 6 }) => {
-  if (viewMode === "card") {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 animate-pulse">
-        {[...Array(rows)].map((_, i) => (
-          <div key={i} className="bg-white dark:bg-gray-800 rounded-md border border-gray-100 dark:border-gray-700 shadow-sm p-4">
-            <div className="flex items-start justify-between gap-3 mb-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className={`h-10 w-10 rounded-md shrink-0 ${skeletonBlock}`}></div>
-                <div className="space-y-2">
-                  <div className={`h-4 w-32 rounded-md ${skeletonBlock}`}></div>
-                  <div className={`h-3 w-24 rounded-md ${skeletonBlock}`}></div>
-                </div>
-              </div>
-              <div className={`h-6 w-16 rounded-full ${skeletonBlock}`}></div>
-            </div>
-            <div className="space-y-2">
-              <div className={`h-3 w-full rounded-md ${skeletonBlock}`}></div>
-              <div className={`h-3 w-3/4 rounded-md ${skeletonBlock}`}></div>
-              <div className={`h-3 w-1/2 rounded-md ${skeletonBlock}`}></div>
-            </div>
-            <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-between">
-              <div className={`h-4 w-20 rounded-md ${skeletonBlock}`}></div>
-              <div className={`h-4 w-16 rounded-md ${skeletonBlock}`}></div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
+export const PageContentSkeleton = ({ rows = 6, columns = 6 }) => {
   return (
     <div className="rounded-md bg-white dark:bg-gray-800 shadow-xl dark:shadow-gray-950/50 overflow-hidden animate-pulse">
       <div className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/60 p-4">
@@ -152,37 +122,6 @@ export const PageContentSkeleton = ({ viewMode = "table", rows = 6, columns = 6 
           </div>
         ))}
       </div>
-    </div>
-  );
-};
-
-// Card View Skeleton
-export const CardSkeleton = () => {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[...Array(6)].map((_, i) => (
-        <div key={i} className="bg-white rounded-md shadow-sm p-4 animate-pulse">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
-              <div>
-                <div className="h-5 w-32 bg-gray-200 rounded-md mb-2"></div>
-                <div className="h-3 w-24 bg-gray-200 rounded-md"></div>
-              </div>
-            </div>
-            <div className="h-6 w-16 bg-gray-200 rounded-full"></div>
-          </div>
-          <div className="space-y-2">
-            <div className="h-3 w-full bg-gray-200 rounded-md"></div>
-            <div className="h-3 w-3/4 bg-gray-200 rounded-md"></div>
-            <div className="h-3 w-1/2 bg-gray-200 rounded-md"></div>
-          </div>
-          <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-gray-100">
-            <div className="h-8 w-8 bg-gray-200 rounded-md"></div>
-            <div className="h-8 w-8 bg-gray-200 rounded-md"></div>
-          </div>
-        </div>
-      ))}
     </div>
   );
 };

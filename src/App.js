@@ -14,8 +14,8 @@ import TaskProfile from "./pages/TaskProfile";
 import SentApprovals from "./pages/SentApprovals";
 import Profile from "./pages/Profile";
 import Firms from "./pages/Firms";
-import Documents from "./pages/Documents";
 import Ledger from "./pages/Ledger";
+import Billing from "./pages/Billing";
 
 function App() {
   return (
@@ -37,7 +37,7 @@ function App() {
                   <Route path="/tasks/:taskId/:tab" element={<TaskProfile />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/firms" element={<Firms />} />
-                  <Route path="/documents" element={<Documents />} />
+                  <Route path="/billing" element={<Billing />} />
                   <Route path="/ledger" element={<Ledger />} />
                 </Route>
               </Route>

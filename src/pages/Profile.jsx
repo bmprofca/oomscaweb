@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  User, Phone, Building2, Mail, Hash, Wallet, MapPin, IndianRupee,
+  User, Phone, Building2, Mail, Hash, Wallet, MapPin,
 } from 'lucide-react';
 import ManagementHub from '../components/common/ManagementHub';
 import { useAuth } from '../contexts/AuthContext';
@@ -180,8 +180,8 @@ export default function Profile() {
               <div className="p-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div>
                   <FieldLabel>Net Balance</FieldLabel>
-                  <p className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-0.5">
-                    <IndianRupee size={16} className="text-slate-400" />{fmt(p.balance.balance)}
+                  <p className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">
+                    ₹{fmt(p.balance.balance)}
                   </p>
                 </div>
                 <div>

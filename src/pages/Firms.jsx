@@ -6,7 +6,6 @@ import { apiCall } from '../utils/apiCall';
 import toast from 'react-hot-toast';
 import ManagementHub from '../components/common/ManagementHub';
 import ManagementFilters from '../components/common/ManagementFilters';
-import ManagementCard from '../components/common/ManagementCard';
 import ManagementTable from '../components/common/ManagementTable';
 import Modal from '../components/common/Modal';
 import TablePagination from '../components/TablePagination';
@@ -24,54 +23,36 @@ function Pulse({ h = 'h-4', w = 'w-full', rounded = 'rounded' }) {
   return <div className={`${h} ${w} ${rounded} bg-slate-200 dark:bg-slate-700 animate-pulse`} />;
 }
 
-function FirmCard({ firm, onClick }) {
+function TableSkeleton() {
   return (
-    <ManagementCard
-      title={firm.firm_name || '—'}
-      subtitle={
-        <span className="flex items-center gap-1.5 mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-          <User size={10} className="shrink-0" />
-          <span className="truncate">{firm.client?.name || '—'}</span>
-        </span>
-      }
-      icon={<Building2 size={14} />}
-      badge={
-        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest shrink-0 shadow-sm ${
-          firm.status
-            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
-        }`}>
-          {firm.status ? 'Active' : 'Inactive'}
-        </span>
-      }
-      onClick={onClick}
-      accent="indigo"
-      menuId={`firm-${firm.firm_id}`}
-      actions={[{ id: 'view', label: 'View Details', icon: <Eye size={14} />, onClick }]}
-      footer={
-        <div className="flex items-center gap-2 text-[10px] font-semibold text-slate-500">
-          {firm.tax?.gst_no && <span>GST: {firm.tax.gst_no}</span>}
-          {firm.tax?.pan_no && <span>PAN: {firm.tax.pan_no}</span>}
-        </div>
-      }
-    >
-      {firm.firm_type && (
-        <span className={`mt-2 inline-block px-2 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-widest ${getFirmBadge(firm.firm_type)}`}>
-          {firm.firm_type}
-        </span>
-      )}
-    </ManagementCard>
+    <div className="overflow-hidden rounded-sm border border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 shadow-sm">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-100/80 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/40">
+              {['Firm', 'Client', 'GST / PAN', 'Status'].map((h) => (
+                <th key={h} className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100/80 dark:divide-slate-700/40">
+            {[...Array(6)].map((_, i) => (
+              <tr key={i}>
+                {[...Array(4)].map((_, j) => (
+                  <td key={j} className="px-6 py-4">
+                    <Pulse h="h-4" w={j === 0 ? 'w-36' : 'w-24'} rounded="rounded-full" />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 
 export default function Firms() {
-  const [viewMode, setViewMode] = useState(() => window.innerWidth < 768 ? 'card' : 'table');
-  useEffect(() => {
-    const h = () => setViewMode(window.innerWidth < 768 ? 'card' : 'table');
-    window.addEventListener('resize', h);
-    return () => window.removeEventListener('resize', h);
-  }, []);
-
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [total, setTotal] = useState(0);
@@ -186,21 +167,13 @@ export default function Firms() {
     >
       <div className="space-y-4">
         <ManagementFilters
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
           searchValue={search}
           onSearchChange={(val) => { setSearch(val); setPage(1); }}
           searchPlaceholder="Search firm, GST, PAN, client…"
         />
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="rounded-sm border border-slate-200/60 dark:border-slate-700/60 p-5">
-                <Pulse h="h-5" w="w-3/4" rounded="rounded-full" />
-              </div>
-            ))}
-          </div>
+          <TableSkeleton />
         ) : firms.length === 0 ? (
           <div className="rounded-sm border border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 p-16 text-center flex flex-col items-center gap-4 shadow-sm">
             <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-full">
@@ -208,7 +181,7 @@ export default function Firms() {
             </div>
             <p className="text-lg text-slate-600 dark:text-slate-400 font-bold">No firms found</p>
           </div>
-        ) : viewMode === 'table' ? (
+        ) : (
           <ManagementTable
             rows={firms}
             columns={tableColumns}
@@ -218,12 +191,6 @@ export default function Firms() {
             accent="indigo"
             showSerialNo={true}
           />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {firms.map((firm) => (
-              <FirmCard key={firm.firm_id} firm={firm} onClick={() => openDetails(firm)} />
-            ))}
-          </div>
         )}
 
         <TablePagination
