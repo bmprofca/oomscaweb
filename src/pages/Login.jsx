@@ -12,13 +12,11 @@ import { useAuth } from "../contexts/AuthContext";
 import { apiCall } from "../utils/apiCall";
 import OomsAuthShell from "../components/auth/OomsAuthShell";
 import AuthPortalSwitcher from "../components/auth/AuthPortalSwitcher";
-import { portalRegisterUrl } from "../config/portalUrls";
 
 export default function Login() {
   const { login, userData } = useAuth();
   const [step, setStep] = useState(1);
   const [mobile, setMobile] = useState("");
-  const [countryCode, setCountryCode] = useState("91");
   const [otp, setOtp] = useState("");
   const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
@@ -54,7 +52,6 @@ export default function Login() {
     setIsSubmitting(true);
     try {
       const res = await apiCall("/auth/login/send-otp", "POST", {
-        country_code: countryCode,
         mobile,
       });
       const data = await res.json();
@@ -81,7 +78,6 @@ export default function Login() {
     setIsSubmitting(true);
     try {
       const res = await apiCall("/auth/login", "POST", {
-        country_code: countryCode,
         mobile: mobileSent,
         otp,
       });
@@ -92,7 +88,7 @@ export default function Login() {
           "ooms_user_data",
           JSON.stringify({
             token: data.token,
-            country_code: countryCode,
+            country_code: "91",
             mobile: mobileSent,
           })
         );
@@ -118,7 +114,7 @@ export default function Login() {
         if (validBranches.length === 1) {
           setLoginSuccess(true);
           login(data.token, validBranches[0], {
-            country_code: countryCode,
+            country_code: "91",
             mobile: mobileSent,
           });
         } else {
@@ -139,7 +135,7 @@ export default function Login() {
   const handleBranchSelect = (branchProfile) => {
     setLoginSuccess(true);
     login(tempToken, branchProfile, {
-      country_code: countryCode,
+      country_code: "91",
       mobile: mobileSent,
     });
   };
@@ -160,14 +156,16 @@ export default function Login() {
   return (
     <OomsAuthShell
       portalLabel="CA"
-      leftTitle={
-        <>
-          Your CA workspace,
-          <br />
-          ready to operate.
-        </>
-      }
-      leftSubtitle="Chartered accountant portal for OOMS. Sign in with your registered mobile — no passwords."
+      features={[
+        { icon: "🏢", label: "Multi-branch access" },
+        { icon: "📑", label: "Client & firm reviews" },
+        { icon: "🛡️", label: "Compliance oversight" },
+        { icon: "📈", label: "Practice reports" },
+        { icon: "👥", label: "Team & assignment view" },
+        { icon: "📌", label: "Priority task follow-ups" },
+        { icon: "📁", label: "Document & file access" },
+        { icon: "🔔", label: "Alerts & pending actions" },
+      ]}
       footerNote="Secure CA portal — all access is monitored"
     >
       <AuthPortalSwitcher active="ca" />
@@ -182,7 +180,7 @@ export default function Login() {
             {step === 1
               ? "Secure access to your CA dashboard"
               : step === 2
-                ? `Code sent to +${countryCode} ${mobileSent}`
+                ? `Code sent to ${mobileSent}`
                 : "Select a branch to continue"}
           </p>
           <div className="flex gap-1.5 justify-center mt-3">
@@ -211,31 +209,19 @@ export default function Login() {
 
       {step === 1 && !loginSuccess && (
         <form onSubmit={handleSendOtp} className="animate-fade-in space-y-4">
-          <div className="flex gap-2">
-            <div className="w-20">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
-                Code
-              </label>
-              <input
-                value={`+${countryCode}`}
-                onChange={(e) => setCountryCode(e.target.value.replace(/\D/g, ""))}
-                className="w-full px-3 py-3 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-                disabled={isSubmitting}
-              />
-            </div>
-            <div className="flex-1">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
-                Mobile Number
-              </label>
-              <input
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                placeholder="10-digit mobile"
-                className="w-full px-4 py-3 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-                disabled={isSubmitting}
-                inputMode="numeric"
-              />
-            </div>
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
+              Mobile Number
+            </label>
+            <input
+              value={mobile}
+              onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
+              placeholder="10-digit mobile number"
+              className="w-full px-4 py-3 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+              disabled={isSubmitting}
+              inputMode="numeric"
+              maxLength={10}
+            />
           </div>
           <button
             type="submit"
@@ -340,15 +326,6 @@ export default function Login() {
             <FiArrowLeft size={13} /> Back to Login
           </button>
         </div>
-      )}
-
-      {!loginSuccess && step === 1 && (
-        <p className="text-center text-[11px] text-slate-400 font-semibold pt-1">
-          Need an office account?{" "}
-          <a href={portalRegisterUrl()} className="text-[#5c3fe6] font-bold hover:underline">
-            Register on Office
-          </a>
-        </p>
       )}
 
       {!loginSuccess && (
