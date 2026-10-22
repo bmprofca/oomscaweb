@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import Firms from "./pages/Firms";
 import Ledger from "./pages/Ledger";
 import Billing from "./pages/Billing";
+import Notifications from "./pages/Notifications";
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
                   <Route path="/firms" element={<Firms />} />
                   <Route path="/billing" element={<Billing />} />
                   <Route path="/ledger" element={<Ledger />} />
+                  <Route path="/notifications" element={<Notifications />} />
                 </Route>
               </Route>
 

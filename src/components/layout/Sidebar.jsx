@@ -6,6 +6,7 @@ import {
   Receipt,
   ShieldCheck,
   IndianRupee,
+  Bell,
 } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
 
@@ -32,6 +33,12 @@ const Sidebar = ({ isMobile, sidebarOpen, toggleSidebar, onHover, isExpanded }) 
       icon: ShieldCheck,
       label: 'Sent Approvals',
       path: '/sent-approvals',
+      roles: ['ca'],
+    },
+    {
+      icon: Bell,
+      label: 'Notifications',
+      path: '/notifications',
       roles: ['ca'],
     },
     {

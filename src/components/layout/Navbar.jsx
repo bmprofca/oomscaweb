@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Menu,
@@ -9,10 +9,12 @@ import {
   Sun,
   Moon,
   Users,
+  Bell,
 } from 'lucide-react';
 
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { apiCall } from '../../utils/apiCall';
 
 const Navbar = ({
   toggleSidebar,
@@ -24,6 +26,22 @@ const Navbar = ({
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { userData, logout, openProfileModal } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    const loadUnreadCount = async () => {
+      if (!userData?.token || !userData?.branch?.branch_id) return;
+      try {
+        const response = await apiCall('/notifications/unread-count', 'GET');
+        const payload = await response.json().catch(() => null);
+        if (active && response.ok && payload?.success !== false) setUnreadCount(Number(payload?.data?.unread_count || 0));
+      } catch { /* the notification page exposes retry */ }
+    };
+    loadUnreadCount();
+    const timer = window.setInterval(loadUnreadCount, 60000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [userData?.token, userData?.branch?.branch_id]);
 
   const handleLogout = async () => {
     setOpenDropdown(false);
@@ -67,6 +85,7 @@ const Navbar = ({
 
             {/* Right section */}
             <div className="flex items-center space-x-1 sm:space-x-2">
+              <button type="button" onClick={() => navigate('/notifications')} aria-label="View notifications" className="relative flex h-9 w-9 items-center justify-center rounded-md text-slate-500 hover:bg-gray-100 hover:text-indigo-600 dark:text-slate-300 dark:hover:bg-gray-800"><Bell className="h-4 w-4" />{unreadCount > 0 && <span className="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-red-600 px-1 text-[10px] font-bold leading-4 text-white">{unreadCount > 99 ? '99+' : unreadCount}</span>}</button>
               {/* Desktop Switch Branch Button */}
               <button
                 onClick={openProfileModal}
